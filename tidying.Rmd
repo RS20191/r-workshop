@@ -7,24 +7,89 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# attachaing pakages
+library(readxl)
+library(tidyverse)
+library(janitor)
+library(here)
+```
+### Read in inverts.xlsx
+```{r}
+inverts <- read_excel(here("data", "inverts.xlsx"))
+```
+###  `pivot_longer()`
+
+Use single colon (:) to indicate a series of sequential columns.  A:D
+```{r}
+inverts_long<- pivot_longer(data = inverts,
+                            cols = '2016' : '2018',
+                            names_to = "years",
+                            values_to = "sp_count")
 ```
 
-## R Markdown
+What if we want to get it back into wide format?
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+inverts_wide <- inverts_long %>% 
+  pivot_wider(names_from = common_name, values_from = sp_count)
 ```
 
-## Including Plots
+### 'janitor::clean_names()'
+```{r}
 
-You can also embed plots, for example:
+inverts_wide <- inverts_wide %>%  clean_names()
+```
+ ### 'tidyr'::unite()' to combine information from columns
+ 
+ example: merge the site code and year into a single column called "site_year"
+```{r}
+inverts_unite <- inverts_long %>% 
+  unite(col = "site_year",
+        c(site,years))
+```
+### Activity:
+Create a new object called 'inverts_moyr' starting frim inverts_long that unites teh month and year columns into a single column named "mo_yr", using a slash"/" as the separator....then try some other fun separator
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+inverts_moyr <- inverts_long %>% 
+  unite(col = "moyr",
+        c(month,years),
+        sep = "/")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+###  'tidy::separate()'
+```{r}
+inverts_sep<- inverts_unite %>% 
+  separate(col = site_year, into = c("my_site", "my_year"))
+```
+
+### 'stringr' + 'mutate()'
+Example using built in 'trees' dataset with mutate() to add 5 to all of the tree heights
+```{r}
+trees_new <- trees %>% 
+  mutate(height_update = Height +5)
+```
+## 'str_replace()'
+
+```{r}
+ca_abbr <- inverts %>% 
+  mutate(common_name = 
+           str_replace(common_name, 
+                       pattern = "california",
+                       replacement = "CA"))
+```
+
+
+Example:  In the common_name column, you want to replace spiny with the word "awesome"
+
+```{r}
+awesome_lobsta <- inverts %>% 
+  mutate(common_name = 
+           str_replace(common_name, 
+                       pattern = "spiny",
+                       replacement = "awesome"))
+```
+
+
+
