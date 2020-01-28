@@ -13,7 +13,7 @@ library(kableExtra)  # install.packages("kableExtra")
 
 # read in lobsta data
 
-lobsters <- read_xlsx(here("data", "lobsters.xlsx"),
+lobsters <- read_xlsx(here("data", "lobsters2.xlsx"),
                       skip = 4)
 
 ```
